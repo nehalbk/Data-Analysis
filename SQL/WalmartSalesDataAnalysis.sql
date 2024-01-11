@@ -141,3 +141,49 @@ union
 
 -- What is the average rating of each product line?
 select product_line, round(avg(rating),2) as average_rating from sales group by product_line order by average_rating desc;
+
+-- Number of sales made in each time of the day
+select time_of_day, count(total) from sales group by time_of_day;
+
+-- Which of the customer types brings the most revenue?
+select customer_type, sum(total) as total_revenue from sales group by customer_type order by total_revenue desc limit 1;
+
+-- Which city has the largest tax percent/ VAT (Value Added Tax)?
+select city, max(tax_pct) largest_tax from sales group by city order by largest_tax desc limit 1;
+ 
+-- Which customer type pays the most in VAT?
+select customer_type, round(sum(tax_pct),2) as total_tax from sales group by customer_type order by total_tax desc limit 1;
+
+-- How many unique customer types does the data have?
+select count(distinct customer_type) from sales;
+
+-- How many unique payment methods does the data have?
+select count(distinct payment) from sales;
+
+-- What is the most common customer type?
+select customer_type, count(*) as  count from sales group by customer_type order by count desc limit 1;
+
+-- Which customer type buys the most?
+select customer_type, sum(quantity) as  count from sales group by customer_type order by count desc limit 1;
+
+-- What is the gender of most of the customers?
+select gender, count(*) as  count from sales group by gender order by count desc limit 1;
+
+-- What is the gender distribution per branch?
+select branch, gender, count(*) from sales group by gender, branch order by branch;
+
+-- Which time of the day do customers give most ratings?
+select time_of_day, round(sum(rating),2) as total_rating from sales group by time_of_day order by total_rating desc limit 1;
+
+-- Which time of the day do customers give most ratings per branch?
+select branch, time_of_day, round(sum(rating),2) as total_ratings from sales group by time_of_day, branch order by branch, total_ratings desc;
+
+-- Which day fo the week has the best avg ratings?
+select day_name, avg(rating) as avg_rating from sales group by day_name order by avg_rating desc limit 1;
+
+-- Which day of the week has the best average ratings per branch?
+(select branch,day_name,max(rating) as best_rating from sales group by day_name,branch having branch="A" order by branch,best_rating desc limit 1)
+union
+(select branch,day_name,max(rating) as best_rating from sales group by day_name,branch having branch="B" order by branch,best_rating desc limit 1)
+union
+(select branch,day_name,max(rating) as best_rating from sales group by day_name,branch having branch="C" order by branch,best_rating desc limit 1)
