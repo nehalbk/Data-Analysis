@@ -33,10 +33,10 @@ Feel free to explore each project folder for detailed documentation, code, and v
 
 To get started with these projects locally, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/your-username/your-repository.git`
-2. Navigate to the project folder: `cd Project_Name_1`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run the main script or Jupyter notebook: `python main.py` or `jupyter notebook`
+1. Clone the repository: `git clone https://github.com/nehalbk/Data-Analysis.git`
+2. Navigate to the project folder: `cd Data Analysis`
+4. Run the python script, execute SQL queries and look into PowerBI visualizations
+5. Have fun!
 
 Feel free to customize the projects, experiment with the code, and adapt them to your own datasets.
 
