@@ -3,7 +3,7 @@
 
 # #Customer Segreggation using RFM Analysis
 
-# In[238]:
+# In[350]:
 
 
 import numpy as np 
@@ -20,7 +20,7 @@ import datetime as dt
 warnings.filterwarnings("ignore")
 
 
-# In[204]:
+# In[351]:
 
 
 # Load the data with specified encoding and data types
@@ -43,31 +43,37 @@ data = pd.read_csv(
 print(data.dtypes)
 
 
-# In[205]:
+# In[352]:
 
 
 data.head()
 
 
-# In[206]:
+# In[353]:
 
 
-clean_data=data.drop(columns=["InvoiceNo","StockCode","Description"])
+data.describe()
 
 
-# In[207]:
+# In[354]:
 
 
-clean_data.head()
+clean_data=data.drop(columns=["InvoiceNo","StockCode","Description"]).dropna()
 
 
-# In[208]:
+# In[355]:
+
+
+clean_data.describe()
+
+
+# In[356]:
 
 
 clean_data["Country"].unique()
 
 
-# In[209]:
+# In[357]:
 
 
 # Group by 'Country' and count the number of occurrences
@@ -77,13 +83,13 @@ grouped_data = clean_data.groupby('Country').count()
 sorted_data = grouped_data.sort_values(by='Quantity', ascending=False)
 
 
-# In[210]:
+# In[358]:
 
 
 sorted_data.head()
 
 
-# In[211]:
+# In[359]:
 
 
 #Filter data for 'United Kingdom'
@@ -95,52 +101,52 @@ uk_data.drop(inplace=True,columns=["Country"])
 print(uk_data)
 
 
-# In[212]:
-
-
-# Filter rows with null or NA values
-print(uk_data[uk_data.isnull().any(axis=1)].head())
-
-print()
-
-#delete 
-uk_data.dropna(inplace=True)
-print(uk_data[uk_data.isnull().any(axis=1)].count())
-
-uk_data.head()
-
-
 # # Recency
 
-# In[213]:
+# In[360]:
 
 
 # Grouping by CustomerID and aggregating by maximum InvoiceDate
-customer_data = uk_data.groupby('CustomerID').agg({'InvoiceDate': 'max'})
+customer_recency_data = uk_data.groupby('CustomerID').agg({'InvoiceDate': 'max'})
 
 # Renaming the columns
-customer_data.columns = ["Recent InvoiceDate"]
+customer_recency_data.columns = ["Recent InvoiceDate"]
 
 # Resetting the index to make CustomerID a column
-customer_data = customer_data.reset_index()
+customer_recency_data = customer_recency_data.reset_index()
 
-customer_data.head()
+customer_recency_data.head()
 
 
-# In[214]:
+# In[361]:
 
 
 # Calculate the "Recency" as the difference between now and "InvoiceDate"
-customer_data["Recency"] = dt.datetime.now() - customer_data["Recent InvoiceDate"]
+customer_recency_data["Recency"] = dt.datetime.now() - customer_recency_data["Recent InvoiceDate"]
 
 # Extract the number of days from the "Recency" timedelta
-customer_data["Recency"] = customer_data["Recency"].dt.days
+customer_recency_data["Recency"] = customer_recency_data["Recency"].dt.days
 
 # Display the first few rows to verify
-print(customer_data.head())
+customer_recency_data.head()
 
 
-# In[215]:
+# In[362]:
+
+
+# Calculate the interquartile range (IQR) for Frequency_normalized
+Q1 = customer_recency_data["Recency"].quantile(0.25)
+Q3 = customer_recency_data["Recency"].quantile(0.75)
+IQR = Q3 - Q1
+
+# Filter out the data points within the IQR range
+customer_recency_data = customer_recency_data[(customer_recency_data["Recency"] >= Q1 - 1.5 * IQR) & (customer_recency_data["Recency"] <= Q3 + 1.5 * IQR)]
+
+# Display the filtered data
+print(customer_freq_data.head())
+
+
+# In[363]:
 
 
 # Normalize the "Recency" column using min-max normalization
@@ -154,10 +160,8 @@ customer_data["Recency_normalized"] = customer_data["Recency"].apply(lambda x: (
 #Reverse sacled as lowest difference should be highest value
 customer_data["Recency_normalized"]=1-customer_data["Recency_normalized"]
 
-customer_data
 
-
-# In[216]:
+# In[364]:
 
 
 # Create a distribution plot for Recency_normalized
@@ -166,7 +170,7 @@ sns.displot(customer_data["Recency_normalized"], kde=True)
 
 # ## Frequency
 
-# In[217]:
+# In[365]:
 
 
 # Grouping by CustomerID and aggregating by count to get frequency
@@ -176,7 +180,7 @@ customer_freq_data = uk_data.groupby('CustomerID').size().reset_index(name='Freq
 print(customer_freq_data.head())
 
 
-# In[219]:
+# In[366]:
 
 
 # Calculate the interquartile range (IQR) for Frequency_normalized
@@ -191,7 +195,7 @@ customer_freq_data = customer_freq_data[(customer_freq_data["Frequency"] >= Q1 -
 print(customer_freq_data.head())
 
 
-# In[220]:
+# In[367]:
 
 
 # Normalize the "Frequency" column using min-max normalization
@@ -202,10 +206,10 @@ max_freq=customer_freq_data["Frequency"].max()
 # Calculate min-max normalization using apply and lambda function
 customer_freq_data["Frequency_normalized"] = customer_freq_data["Frequency"].apply(lambda x: (x - min_freq) / (max_freq - min_freq))
 
-print(customer_freq_data[customer_freq_data["Frequency_normalized"]>0.2])
+print(customer_freq_data.head())
 
 
-# In[221]:
+# In[368]:
 
 
 # Create a distribution plot for Recency_normalized
@@ -214,7 +218,7 @@ sns.displot(customer_freq_data["Frequency_normalized"], kde=True)
 
 # # Monetory Value
 
-# In[222]:
+# In[369]:
 
 
 # Grouping by CustomerID and aggregating by sum of the product of 'UnitPrice' and 'Quantity'
@@ -234,14 +238,14 @@ customer_monetary_data.columns = ["Monetary"]
 customer_monetary_data = customer_monetary_data.reset_index()
 
 
-# In[223]:
+# In[370]:
 
 
 # Displaying the result
 print(customer_monetary_data.head(10))
 
 
-# In[224]:
+# In[371]:
 
 
 # Calculate the interquartile range (IQR) for Frequency_normalized
@@ -256,7 +260,7 @@ customer_monetary_data = customer_monetary_data[(customer_monetary_data["Monetar
 print(customer_monetary_data.head())
 
 
-# In[225]:
+# In[372]:
 
 
 # Normalize the "Monetary" column using min-max normalization
@@ -270,21 +274,14 @@ customer_monetary_data["Monetary_normalized"] = customer_monetary_data["Monetary
 print(customer_monetary_data.head())
 
 
-# In[226]:
+# In[373]:
 
 
 # Create a distribution plot for Recency_normalized
 sns.displot(customer_monetary_data["Monetary_normalized"], kde=True)
 
 
-# In[227]:
-
-
-# Create a distribution plot for Recency_normalized
-sns.displot(customer_monetary_data["Monetary_normalized"], kde=True)
-
-
-# In[228]:
+# In[374]:
 
 
 #RFM
@@ -296,14 +293,40 @@ rfm_data = pd.concat([customer_data["Recency_normalized"], customer_freq_data["F
 print(rfm_data.head())
 
 
-# In[229]:
+# In[375]:
 
 
 rfm_data.dropna(inplace=True)
 rfm_data
 
 
-# In[230]:
+# In[380]:
+
+
+# Assuming rfm_data is already defined and contains the necessary data
+
+# Define the range of K values to test
+k_range = range(1, 11)
+
+# Initialize an empty list to store inertia values for each K
+inertia_values = []
+
+# Compute the inertia for each K
+for k in k_range:
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(rfm_data)
+    inertia_values.append(kmeans.inertia_)
+
+# Plot the inertia values to find the elbow point
+plt.figure(figsize=(8, 6))
+plt.plot(k_range, inertia_values, marker='o')
+plt.xlabel('Number of clusters (K)')
+plt.ylabel('Inertia')
+plt.title('Elbow Method for Optimal K')
+plt.show()
+
+
+# In[376]:
 
 
 # Instantiate the KMeans model with 4 clusters
@@ -322,7 +345,7 @@ rfm_data['Cluster'] = cluster_labels
 print(rfm_data.head())
 
 
-# In[231]:
+# In[377]:
 
 
 # Grouping by Cluster and calculating the average of each RFM component
@@ -336,7 +359,7 @@ rfm_data_cluster_avg = rfm_data.groupby('Cluster').agg({
 print(rfm_data_cluster_avg)
 
 
-# In[236]:
+# In[378]:
 
 
 #Renaming
@@ -362,7 +385,7 @@ rfm_data_cluster_avg.rename(columns=column_names, inplace=True)
 print(rfm_data_cluster_avg)
 
 
-# In[240]:
+# In[379]:
 
 
 import matplotlib.pyplot as plt
@@ -395,6 +418,12 @@ ax.legend()
 
 # Show plot
 plt.show()
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
