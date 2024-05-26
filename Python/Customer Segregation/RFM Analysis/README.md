@@ -97,4 +97,3 @@ This project is licensed under the MIT License.
 
 - Thanks to the open-source community for providing the tools and libraries used in this project.
 - Inspired by various RFM analysis tutorials and customer segmentation strategies.
-```
